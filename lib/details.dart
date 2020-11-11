@@ -7,7 +7,6 @@ class Details extends StatefulWidget {
 
 class _DetailsState extends State<Details> {
   showAlertDialog(BuildContext context) {
-    // set up the buttons
     Widget noButton = FlatButton(
       child: Text(
         "No",
@@ -20,7 +19,6 @@ class _DetailsState extends State<Details> {
       onPressed: () {},
     );
 
-    // set up the AlertDialog
     AlertDialog alert = AlertDialog(
       title: Text("Confirmation"),
       content: Text(
