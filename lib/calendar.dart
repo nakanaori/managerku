@@ -1,121 +1,190 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
-Color darkOrange = Color(0xffFF7D45);
-Color lightOrange = Color(0xffF9AE91);
+import 'constant.dart';
+import 'crud.dart';
+import 'details.dart';
+import 'edit.dart';
+import 'home.dart';
+import 'reminder.dart';
+import 'setting.dart';
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key key}) : super(key: key);
+class Calendar extends StatefulWidget {
+  const Calendar({Key key}) : super(key: key);
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  List<Meeting> meetings;
+class _MyHomePageState extends State<Calendar> {
+  CRUD dbhelper = CRUD();
+  List<Reminder> future;
+
+  @override
+  void initState() {
+    super.initState();
+    updateListView();
+  }
+
+  Future<Reminder> navigateToEntryForm(
+      BuildContext context, Reminder input) async {
+    var res = await Navigator.push(context,
+        MaterialPageRoute(builder: (BuildContext context) => Edit(input)));
+    return res;
+  }
+
+  void updateListView() async {
+    future = await dbhelper.getReminder();
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text("Calendar"),
-          flexibleSpace: Container(
-            decoration: BoxDecoration(color: darkOrange),
-          ),
-          leading: IconButton(
-            icon: Icon(Icons.list),
-            onPressed: () => print("List"),
-          ),
-          actions: <Widget>[
-            IconButton(
-                icon: Icon(Icons.more_vert), onPressed: () => print("Option"))
+      body: Container(
+        decoration: Constant.background,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SafeArea(
+                    child: IconButton(
+                        color: Constant.gold,
+                        icon: Icon(Icons.list),
+                        onPressed: () {
+                          Navigator.pushReplacement(context,
+                              new MaterialPageRoute(builder: (_) => Home()));
+                        })),
+                SafeArea(
+                  child: Text(
+                    "Calendar",
+                    style: Constant.heading(fontSize: 25),
+                  ),
+                ),
+                SafeArea(
+                  child: IconButton(
+                    color: Constant.gold,
+                    icon: Icon(Icons.settings),
+                    onPressed: () async {
+                      var res = await Navigator.push(context,
+                          new MaterialPageRoute(builder: (_) => Setting()));
+                      if (res) {
+                        setState(() {});
+                      }
+                    },
+                  ),
+                )
+              ],
+            ),
+            Expanded(
+              child: SfCalendar(
+                onTap: (calendarTapDetails) async {
+                  if (calendarTapDetails.targetElement ==
+                      CalendarElement.appointment) {
+                    var res = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) =>
+                                Details(calendarTapDetails.appointments[0])));
+                    if (res) {
+                      updateListView();
+                    }
+                  }
+                },
+                cellBorderColor: Colors.transparent,
+                selectionDecoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(width: 2, color: Constant.gold)),
+                view: CalendarView.month,
+                todayHighlightColor: Constant.gradientFrom,
+                todayTextStyle: Constant.heading(fontSize: 15),
+                backgroundColor: Colors.transparent,
+                headerStyle: CalendarHeaderStyle(
+                    textStyle: Constant.heading(fontSize: 20),
+                    textAlign: TextAlign.center),
+                viewHeaderStyle: ViewHeaderStyle(
+                    dayTextStyle: Constant.heading(fontSize: 15),
+                    dateTextStyle: Constant.heading(fontSize: 15)),
+                dataSource: ReminderDataSource(future),
+                appointmentTimeTextFormat:
+                    (Constant.hour12Format ? "hh:mm a" : "HH:mm"),
+                monthViewSettings: MonthViewSettings(
+                    showAgenda: true,
+                    agendaStyle: AgendaStyle(
+                        backgroundColor: Colors.transparent,
+                        appointmentTextStyle:
+                            TextStyle(color: Constant.darkBlue, fontSize: 18),
+                        dayTextStyle:
+                            TextStyle(color: Constant.gold, fontSize: 18),
+                        dateTextStyle:
+                            TextStyle(color: Constant.gold, fontSize: 18)),
+                    monthCellStyle: MonthCellStyle(
+                      backgroundColor: Colors.transparent,
+                      todayBackgroundColor: Colors.transparent,
+                      trailingDatesBackgroundColor: Colors.transparent,
+                      leadingDatesBackgroundColor: Colors.transparent,
+                      textStyle: Constant.heading(fontSize: 18),
+                      leadingDatesTextStyle:
+                          TextStyle(color: Constant.grey, fontSize: 15),
+                      trailingDatesTextStyle:
+                          TextStyle(color: Constant.grey, fontSize: 15),
+                    )),
+                allowViewNavigation: true,
+              ),
+            ),
           ],
         ),
-        body: SfCalendar(
-          view: CalendarView.month,
-          todayHighlightColor: lightOrange,
-          onTap: (calendarTapDetails) =>
-              print(calendarTapDetails.appointments.asMap()),
-          dataSource: MeetingDataSource(_getDataSource()),
-          monthViewSettings: MonthViewSettings(
-              showAgenda: true,
-              agendaStyle: AgendaStyle(
-                backgroundColor: darkOrange,
-              ),
-              monthCellStyle: MonthCellStyle(
-                backgroundColor: lightOrange,
-                todayBackgroundColor: darkOrange,
-                trailingDatesBackgroundColor: Colors.grey,
-                leadingDatesBackgroundColor: Colors.grey,
-              )),
-        ));
-  }
-
-  List<Meeting> _getDataSource() {
-    meetings = <Meeting>[];
-    final DateTime today = DateTime.now();
-    final DateTime startTime =
-        DateTime(today.year, today.month, today.day, 9, 0, 0);
-    final DateTime endTime = startTime.add(const Duration(hours: 2));
-    meetings.add(Meeting('Conference', startTime, endTime, lightOrange, false));
-    meetings.add(Meeting('Meet', startTime, endTime, lightOrange, false));
-    return meetings;
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          var reminder = await navigateToEntryForm(context, null);
+          if (reminder != null) {
+            int res = await dbhelper.insert(reminder);
+            if (res != 0) {
+              updateListView();
+            }
+          }
+        },
+        backgroundColor: Constant.gold,
+        foregroundColor: Constant.darkBlue,
+        splashColor: Constant.darkBlue,
+        child: Icon(
+          Icons.add,
+          size: 40,
+        ),
+      ),
+    );
   }
 }
 
-/// An object to set the appointment collection data source to calendar, which
-/// used to map the custom appointment data to the calendar appointment, and
-/// allows to add, remove or reset the appointment collection.
-class MeetingDataSource extends CalendarDataSource {
-  /// Creates a meeting data source, which used to set the appointment
-  /// collection to the calendar
-  MeetingDataSource(List<Meeting> source) {
+class ReminderDataSource extends CalendarDataSource {
+  ReminderDataSource(List<Reminder> source) {
     appointments = source;
   }
 
   @override
   DateTime getStartTime(int index) {
-    return appointments[index].from;
+    return DateTime.fromMillisecondsSinceEpoch(appointments[index].dateFrom);
   }
 
   @override
   DateTime getEndTime(int index) {
-    return appointments[index].to;
+    return DateTime.fromMillisecondsSinceEpoch(appointments[index].dateTo);
   }
 
   @override
   String getSubject(int index) {
-    return appointments[index].eventName;
+    return appointments[index].title;
   }
 
   @override
   Color getColor(int index) {
-    return appointments[index].background;
+    return Constant.grey;
   }
 
   @override
   bool isAllDay(int index) {
-    return appointments[index].isAllDay;
+    return false;
   }
-}
-
-/// Custom business object class which contains properties to hold the detailed
-/// information about the event data which will be rendered in calendar.
-class Meeting {
-  /// Creates a meeting class with required details.
-  Meeting(this.eventName, this.from, this.to, this.background, this.isAllDay);
-
-  /// Event name which is equivalent to subject property of [Appointment].
-  String eventName;
-
-  /// From which is equivalent to start time property of [Appointment].
-  DateTime from;
-
-  /// To which is equivalent to end time property of [Appointment].
-  DateTime to;
-
-  /// Background which is equivalent to color property of [Appointment].
-  Color background;
-
-  /// IsAllDay which is equivalent to isAllDay property of [Appointment].
-  bool isAllDay;
 }

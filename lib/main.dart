@@ -1,9 +1,22 @@
 import 'package:flutter/material.dart';
-import 'details.dart';
-import 'calendar.dart';
-import 'home.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'splash.dart';
+import 'constant.dart';
 
-void main() => runApp(MyApp());
+void main() async {
+  Constant.flutterLocalNotificationPlugin = FlutterLocalNotificationsPlugin();
+  WidgetsFlutterBinding.ensureInitialized();
+  var initializationSettingsAndroid = AndroidInitializationSettings('app_icon');
+  var initializationSettings =
+      InitializationSettings(android: initializationSettingsAndroid);
+  await Constant.flutterLocalNotificationPlugin.initialize(
+      initializationSettings, onSelectNotification: (String payload) async {
+    if (payload != null) {
+      print('notification payload : ' + payload);
+    }
+  });
+  runApp(MyApp());
+}
 
 class MyApp extends StatefulWidget {
   @override
@@ -15,7 +28,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "ManagerKu",
-      home: Home(),
+      home: Splash(),
     );
   }
 }
