@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
+import 'calendar.dart';
 import 'constant.dart';
 import 'home.dart';
 
@@ -12,12 +13,17 @@ class Splash extends StatefulWidget {
 }
 
 class _SplashState extends State<Splash> {
+  int last;
   @override
   void initState() {
     super.initState();
+    Constant.readState().then((value) {
+      last = value;
+    });
+
     Timer(Duration(seconds: 5), () {
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (_) => Home()));
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (_) => (last == 0 ? Home() : Calendar())));
     });
   }
 
@@ -31,11 +37,17 @@ class _SplashState extends State<Splash> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                height: 120,
-                width: 120,
+                padding: EdgeInsets.all(10),
+                height: 140,
+                width: 140,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Constant.grey,
+                  color: Colors.white,
+                ),
+                child: Image(
+                  image: AssetImage("assets/app_icon.png"),
+                  height: 110,
+                  width: 110,
                 ),
               ),
               Text("ManagerKu", style: Constant.heading(fontSize: 25))

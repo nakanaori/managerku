@@ -85,8 +85,10 @@ class _DetailsState extends State<Details> {
 
   Future<Reminder> navigateToEntryForm(
       BuildContext context, Reminder input) async {
-    var res = await Navigator.push(context,
-        MaterialPageRoute(builder: (BuildContext context) => Edit(input)));
+    var res = await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (BuildContext context) => Edit(input, null)));
     return res;
   }
 
@@ -237,11 +239,13 @@ class _DetailsState extends State<Details> {
                           Row(
                             children: [
                               Text(
-                                "Has Notification : ",
+                                "Notify me : ",
                                 style: Constant.heading(fontSize: 17),
                               ),
                               Text(
-                                reminder.hasNotificationBool().toString(),
+                                (reminder.hasNotificationBool() == true
+                                    ? "Yes"
+                                    : "No"),
                                 style: TextStyle(
                                     fontSize: 17, color: Colors.white),
                               )
@@ -254,7 +258,7 @@ class _DetailsState extends State<Details> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "Notification Time : ",
+                                "Remind me : ",
                                 style: Constant.heading(fontSize: 17),
                               ),
                               Flexible(

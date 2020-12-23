@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'constant.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
@@ -7,15 +6,17 @@ import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'reminder.dart';
 
 class Edit extends StatefulWidget {
-  Reminder reminder;
-  Edit(this.reminder);
+  final Reminder reminder;
+  final DateTime selectedTime;
+  Edit(this.reminder, this.selectedTime);
   @override
-  _EditState createState() => _EditState(reminder);
+  _EditState createState() => _EditState(reminder, selectedTime);
 }
 
 class _EditState extends State<Edit> {
   Reminder reminder;
-  _EditState(this.reminder);
+  DateTime selectedTime;
+  _EditState(this.reminder, this.selectedTime);
   TextEditingController titleCtrl = TextEditingController();
   TextEditingController descCtrl = TextEditingController();
   TextEditingController dateCtrl = TextEditingController();
@@ -53,6 +54,10 @@ class _EditState extends State<Edit> {
       notifValue = hasNotification ? "Use Notification" : "No Notification";
       notifTimeValue = reminder.notificationTime;
       head = "EDIT";
+      inserted = true;
+    } else if (selectedTime != null && !inserted) {
+      date = selectedTime;
+      dateCtrl.text = Constant.dateToString(date);
       inserted = true;
     }
 
@@ -166,31 +171,22 @@ class _EditState extends State<Edit> {
                             borderRadius: BorderRadius.all(Radius.circular(20)),
                             splashColor: Constant.gold,
                             onTap: () {
-                              print(Constant.hour12Format);
-                              if (Constant.hour12Format) {
-                                DatePicker.showTimePicker(
-                                  context,
-                                  showSecondsColumn: false,
-                                  onConfirm: (time) {
-                                    setState(() {
-                                      timeFrom = time;
-                                      if (timeTo == null) timeTo = time;
-                                    });
-                                  },
-                                );
-                              } else {
-                                DatePicker.showTime12hPicker(
-                                  context,
-                                  onConfirm: (time) {
-                                    setState(() {
-                                      timeFrom = time;
-                                      if (timeTo == null) timeTo = time;
-                                      if (timeTo.isBefore(timeFrom))
-                                        timeTo = time;
-                                    });
-                                  },
-                                );
-                              }
+                              DatePicker.showTimePicker(
+                                context,
+                                showSecondsColumn:
+                                    Constant.hour12Format ? true : false,
+                                currentTime: timeFrom == null
+                                    ? DateTime.now()
+                                    : timeFrom,
+                                onConfirm: (time) {
+                                  setState(() {
+                                    timeFrom = time;
+                                    if (timeTo == null) timeTo = time;
+                                    if (timeTo.isBefore(timeFrom))
+                                      timeTo = time;
+                                  });
+                                },
+                              );
                             },
                             child: Ink(
                               width: 150,
@@ -227,27 +223,18 @@ class _EditState extends State<Edit> {
                             borderRadius: BorderRadius.all(Radius.circular(20)),
                             splashColor: Constant.gold,
                             onTap: () {
-                              print(Constant.hour12Format);
-                              if (Constant.hour12Format) {
-                                DatePicker.showTimePicker(
-                                  context,
-                                  showSecondsColumn: false,
-                                  onConfirm: (time) {
-                                    setState(() {
-                                      timeTo = time;
-                                    });
-                                  },
-                                );
-                              } else {
-                                DatePicker.showTime12hPicker(
-                                  context,
-                                  onConfirm: (time) {
-                                    setState(() {
-                                      timeTo = time;
-                                    });
-                                  },
-                                );
-                              }
+                              DatePicker.showTimePicker(
+                                context,
+                                showSecondsColumn:
+                                    Constant.hour12Format ? true : false,
+                                currentTime:
+                                    timeTo == null ? DateTime.now() : timeTo,
+                                onConfirm: (time) {
+                                  setState(() {
+                                    timeTo = time;
+                                  });
+                                },
+                              );
                             },
                             child: Ink(
                               width: 150,
@@ -271,37 +258,31 @@ class _EditState extends State<Edit> {
                         ),
                       ],
                     ),
-                    //Notification
                     Padding(
-                      padding: const EdgeInsets.only(top: 10.0),
-                      child: Text("Notification",
-                          style: Constant.heading(fontSize: 18)),
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Row(
+                        children: [
+                          Checkbox(
+                              checkColor: Constant.darkBlue,
+                              activeColor: Constant.gold,
+                              // focusColor: Constant.gold
+                              value: hasNotification,
+                              onChanged: (value) {
+                                setState(() {
+                                  hasNotification = value;
+                                });
+                              }),
+                          Text("Notify me",
+                              style: Constant.heading(fontSize: 18)),
+                        ],
+                      ),
                     ),
-                    DropdownButton(
-                        isExpanded: true,
-                        dropdownColor: Constant.grey,
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                        value: notifValue,
-                        items: notifType
-                            .map((e) => DropdownMenuItem(
-                                  child: Text(e),
-                                  value: e,
-                                ))
-                            .toList(),
-                        onChanged: (value) {
-                          if (value != "No Notification") {
-                            hasNotification = true;
-                          } else {
-                            hasNotification = false;
-                          }
-                          setState(() {
-                            notifValue = value;
-                          });
-                        }),
+                    //Notification
+
                     Padding(
                       padding: const EdgeInsets.only(top: 10.0),
                       child: Text(
-                        "Notification Time",
+                        "Remind me",
                         style: Constant.heading(fontSize: 18),
                       ),
                     ),
@@ -323,7 +304,9 @@ class _EditState extends State<Edit> {
                         onChanged: (hasNotification == false
                             ? null
                             : (value) {
-                                notifValue = value;
+                                setState(() {
+                                  notifTimeValue = value;
+                                });
                               })),
                     //Button
                     Padding(
@@ -369,17 +352,15 @@ class _EditState extends State<Edit> {
                                       timeTo.hour,
                                       timeTo.minute);
                                   DateTime notifSchedule = scheduleFrom;
-                                  if (hasNotification) {
-                                    Duration dur =
-                                        Constant.getDuration(notifTimeValue);
-                                    notifSchedule.subtract(dur);
-                                    if (notifSchedule
-                                        .isBefore(DateTime.now())) {
-                                      Constant.showAlertDialog(context,
-                                          "Can't create a notification in the past!");
-                                    }
-                                  }
-                                  if (scheduleFrom.isBefore(DateTime.now())) {
+                                  if (hasNotification &&
+                                      notifSchedule
+                                          .subtract(Constant.getDuration(
+                                              notifTimeValue))
+                                          .isBefore(DateTime.now())) {
+                                    Constant.showAlertDialog(context,
+                                        "Can't create a notification in the past!");
+                                  } else if (scheduleFrom
+                                      .isBefore(DateTime.now())) {
                                     //Jika jadwal yang dibuat tuh kemarin"
                                     Constant.showAlertDialog(context,
                                         "Can't create a reminder for the past!");

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Constant {
   static FlutterLocalNotificationsPlugin flutterLocalNotificationPlugin;
@@ -36,6 +37,16 @@ class Constant {
         fontSize: 25,
         color: darkBlue,
         fontWeight: FontWeight.w700);
+  }
+
+  static void saveState(int location) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setInt("Last", location);
+  }
+
+  static Future<int> readState() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt("Last") ?? 0;
   }
 
   static String timeToString(DateTime time) {

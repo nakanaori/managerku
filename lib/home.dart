@@ -22,6 +22,7 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     updateListView();
+    Constant.saveState(0);
   }
 
   void updateListView() {
@@ -42,7 +43,13 @@ class _HomeState extends State<Home> {
     }
     var androidPlatformChannelSpecifications = AndroidNotificationDetails(
         'Channel_ID', 'Channel_title', 'Channel details',
-        priority: Priority.high, importance: Importance.max, ticker: 'test');
+        priority: Priority.high,
+        importance: Importance.max,
+        ticker: 'test',
+        fullScreenIntent: true,
+        enableVibration: true,
+        visibility: NotificationVisibility.public,
+        playSound: true);
 
     var platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifications);
@@ -53,8 +60,10 @@ class _HomeState extends State<Home> {
 
   Future<Reminder> navigateToEntryForm(
       BuildContext context, Reminder input) async {
-    var res = await Navigator.push(context,
-        MaterialPageRoute(builder: (BuildContext context) => Edit(input)));
+    var res = await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (BuildContext context) => Edit(input, null)));
     return res;
   }
 
@@ -102,7 +111,7 @@ class _HomeState extends State<Home> {
                 builder: (context, snapshot) {
                   List<String> date = [];
                   Map<String, List<Reminder>> data = Map();
-                  if (snapshot.hasData) {
+                  if (snapshot.hasData && snapshot.data.length != 0) {
                     for (Reminder reminder in snapshot.data) {
                       String thisDate = reminder.dateToString('from');
                       if (date.contains(thisDate) == false) date.add(thisDate);
@@ -118,7 +127,18 @@ class _HomeState extends State<Home> {
                       ),
                     );
                   } else {
-                    return SizedBox();
+                    return Expanded(
+                      child: Center(
+                          child: Text("No Reminder",
+                              style: TextStyle(
+                                  color: Constant.gold,
+                                  fontFamily: "Poppins",
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.w700,
+                                  shadows: [
+                                    Shadow(color: Colors.black, blurRadius: 10)
+                                  ]))),
+                    );
                   }
                 },
               ),
