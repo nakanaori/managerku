@@ -21,7 +21,7 @@ class _SplashState extends State<Splash> {
       last = value;
     });
 
-    Timer(Duration(seconds: 5), () {
+    Timer(Duration(seconds: 3), () {
       Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (_) => (last == 0 ? Home() : Calendar())));
     });

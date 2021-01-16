@@ -3,6 +3,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'reminder.dart';
+
 class Constant {
   static FlutterLocalNotificationsPlugin flutterLocalNotificationPlugin;
   static bool hour12Format = false;
@@ -169,5 +171,33 @@ class Constant {
     } else {
       return Duration(days: 3);
     }
+  }
+
+  static scheduleAlarm(int id, Reminder reminder, DateTime time) async {
+    List<PendingNotificationRequest> list =
+        await flutterLocalNotificationPlugin.pendingNotificationRequests();
+    for (PendingNotificationRequest i in list) {
+      if (i.id == id) {
+        await flutterLocalNotificationPlugin.cancel(id);
+        break;
+      }
+    }
+    var androidPlatformChannelSpecifications = AndroidNotificationDetails(
+        'Channel_ID', 'Channel_title', 'Channel details',
+        priority: Priority.max,
+        importance: Importance.max,
+        ticker: 'test',
+        fullScreenIntent: true,
+        enableVibration: true,
+        icon: 'notif',
+        visibility: NotificationVisibility.public,
+        sound: RawResourceAndroidNotificationSound("notif_sound"),
+        playSound: true);
+
+    var platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifications);
+
+    await flutterLocalNotificationPlugin.schedule(
+        id, reminder.title, reminder.details, time, platformChannelSpecifics);
   }
 }

@@ -68,11 +68,11 @@ class _MyHomePageState extends State<Calendar> {
                     color: Constant.gold,
                     icon: Icon(Icons.settings),
                     onPressed: () async {
-                      var res = await Navigator.push(context,
-                          new MaterialPageRoute(builder: (_) => Setting()));
-                      if (res) {
+                      await Navigator.push(context,
+                              new MaterialPageRoute(builder: (_) => Setting()))
+                          .then((_) {
                         setState(() {});
-                      }
+                      });
                     },
                   )
                 ],
@@ -84,19 +84,17 @@ class _MyHomePageState extends State<Calendar> {
                 onTap: (calendarTapDetails) async {
                   if (calendarTapDetails.targetElement ==
                       CalendarElement.appointment) {
-                    var res = await Navigator.push(
+                    await Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) =>
-                                Details(calendarTapDetails.appointments[0])));
-                    if (res) {
+                            builder: (_) => Details(
+                                calendarTapDetails.appointments[0]))).then((_) {
                       updateListView();
-                    }
+                    });
                   }
                 },
                 cellBorderColor: Colors.transparent,
                 selectionDecoration: BoxDecoration(
-                    shape: BoxShape.circle,
                     border: Border.all(width: 2, color: Constant.gold)),
                 view: CalendarView.month,
                 todayHighlightColor: Constant.gradientFrom,

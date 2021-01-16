@@ -20,27 +20,6 @@ class _DetailsState extends State<Details> {
   Reminder reminder;
   _DetailsState(this.reminder);
 
-  void scheduleAlarm(int id, Reminder reminder, DateTime time) async {
-    List<PendingNotificationRequest> list = await Constant
-        .flutterLocalNotificationPlugin
-        .pendingNotificationRequests();
-    for (PendingNotificationRequest i in list) {
-      if (i.id == id) {
-        await Constant.flutterLocalNotificationPlugin.cancel(id);
-        break;
-      }
-    }
-    var androidPlatformChannelSpecifications = AndroidNotificationDetails(
-        'Channel_ID', 'Channel_title', 'Channel details',
-        priority: Priority.high, importance: Importance.max, ticker: 'test');
-
-    var platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifications);
-
-    await Constant.flutterLocalNotificationPlugin
-        .schedule(id, reminder.title, "", time, platformChannelSpecifics);
-  }
-
   showAlertDialog(BuildContext context) {
     Widget noButton = FlatButton(
       child: Text(
@@ -121,8 +100,12 @@ class _DetailsState extends State<Details> {
                       color: Constant.darkBlue,
                       icon: Icon(Icons.settings, size: 30),
                       onPressed: () {
-                        Navigator.push(context,
-                            new MaterialPageRoute(builder: (_) => Setting()));
+                        Navigator.push(
+                            context,
+                            new MaterialPageRoute(
+                                builder: (_) => Setting())).then((_) {
+                          setState(() {});
+                        });
                       })
                 ],
               ),
@@ -295,7 +278,7 @@ class _DetailsState extends State<Details> {
                                   int res =
                                       await dbhelper.update(editedReminder);
                                   if (editedReminder.hasNotificationBool()) {
-                                    scheduleAlarm(
+                                    Constant.scheduleAlarm(
                                         res,
                                         editedReminder,
                                         DateTime.fromMillisecondsSinceEpoch(

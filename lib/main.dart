@@ -6,7 +6,7 @@ import 'constant.dart';
 void main() async {
   Constant.flutterLocalNotificationPlugin = FlutterLocalNotificationsPlugin();
   WidgetsFlutterBinding.ensureInitialized();
-  var initializationSettingsAndroid = AndroidInitializationSettings('app_icon');
+  var initializationSettingsAndroid = AndroidInitializationSettings('notif');
   var initializationSettings =
       InitializationSettings(android: initializationSettingsAndroid);
   await Constant.flutterLocalNotificationPlugin.initialize(

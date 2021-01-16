@@ -31,33 +31,6 @@ class _HomeState extends State<Home> {
     });
   }
 
-  void scheduleAlarm(int id, Reminder reminder, DateTime time) async {
-    List<PendingNotificationRequest> list = await Constant
-        .flutterLocalNotificationPlugin
-        .pendingNotificationRequests();
-    for (PendingNotificationRequest i in list) {
-      if (i.id == id) {
-        await Constant.flutterLocalNotificationPlugin.cancel(id);
-        break;
-      }
-    }
-    var androidPlatformChannelSpecifications = AndroidNotificationDetails(
-        'Channel_ID', 'Channel_title', 'Channel details',
-        priority: Priority.high,
-        importance: Importance.max,
-        ticker: 'test',
-        fullScreenIntent: true,
-        enableVibration: true,
-        visibility: NotificationVisibility.public,
-        playSound: true);
-
-    var platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifications);
-
-    await Constant.flutterLocalNotificationPlugin
-        .schedule(id, reminder.title, "", time, platformChannelSpecifics);
-  }
-
   Future<Reminder> navigateToEntryForm(
       BuildContext context, Reminder input) async {
     var res = await Navigator.push(
@@ -96,13 +69,14 @@ class _HomeState extends State<Home> {
                       color: Constant.gold,
                       icon: Icon(Icons.settings),
                       onPressed: () async {
-                        var refresh = await Navigator.push(context,
-                            new MaterialPageRoute(builder: (_) => Setting()));
-                        if (refresh) {
+                        await Navigator.push(
+                            context,
+                            new MaterialPageRoute(
+                                builder: (_) => Setting())).then((_) {
                           updateListView();
-                        }
+                        });
                       },
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -152,7 +126,7 @@ class _HomeState extends State<Home> {
           if (reminder != null) {
             int res = await dbhelper.insert(reminder);
             if (reminder.hasNotificationBool()) {
-              scheduleAlarm(
+              Constant.scheduleAlarm(
                   res,
                   reminder,
                   DateTime.fromMillisecondsSinceEpoch(reminder.dateFrom)
@@ -206,11 +180,11 @@ class _HomeState extends State<Home> {
         child: InkWell(
           onTap: () async {
             // print(reminder.title);
-            var res = await Navigator.push(context,
-                new MaterialPageRoute(builder: (_) => Details(reminder)));
-            if (res) {
+            await Navigator.push(context,
+                    new MaterialPageRoute(builder: (_) => Details(reminder)))
+                .then((_) {
               updateListView();
-            }
+            });
           },
           borderRadius: BorderRadius.circular(20),
           child: Ink(
